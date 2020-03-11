@@ -1,3 +1,4 @@
+import math
 from fractions import Fraction
 
 
@@ -34,10 +35,6 @@ def copy_matrix(m):
 
 # def invert_matrix(m):
 def invert_matrix(m):
-    # # Section 1: Make sure A can be inverted.
-    # check_squareness(m)
-    # check_non_singular(m)
-
     # Section 2: Make copies of A & I, AM & IM, to use for row ops
     n = len(m)
     AM = copy_matrix(m)
@@ -79,6 +76,15 @@ def matrix_multiply(a, b):
             C[i][j] = total
 
     return C
+
+
+def least_common_multiplier(fractions):
+    denominators = [f.denominator for f in fractions]
+    lcm = denominators[0]
+    for d in denominators[1:]:
+        # integer division
+        lcm = lcm // math.gcd(lcm, d) * d
+    return lcm
 
 
 def solution(m):
@@ -123,30 +129,29 @@ def solution(m):
     N = invert_matrix(subtract_from_identity_matrix(Q))
     B = matrix_multiply(N, R)
 
-    print(B)
-
     first_row_b = B[0]
+    result = [0 for x in range(len(all_terminal_states))]
 
-    result = [0 for x in range(len(all_terminal_states) + 1)]
+    lcm = least_common_multiplier(first_row_b)
 
-    for i in range(len(result)):
-        if i in terminal_states:
-            result[i] = first_row_b[i.numerator]
-        elif i in all_terminal_states:
-            result[i] = 0
+    j = 0
+    for i, state in enumerate(sorted(all_terminal_states)):
+        if state in terminal_states:
+            if first_row_b[j].denominator == lcm:
+                result[i] = first_row_b[j].numerator
+            else:
+                result[i] = first_row_b[j].numerator\
+                            * (lcm // first_row_b[j].denominator)
+            j += 1
+        else:
+            result[j] = 0
 
-    # TODO: LCD
-    # result[len(result - 1)] =
+    result.append(least_common_multiplier(first_row_b))
+    return result
+
 
 def main():
-    print(solution([
-        [0, 1, 0, 0, 0, 1],
-        [4, 0, 0, 3, 2, 0],
-        [0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0],
-    ]))
+    print(solution([[0, 2, 1, 0, 0], [0, 0, 0, 3, 4], [0, 0, 0, 0, 0], [0, 0, 0, 0,0], [0, 0, 0, 0, 0]]))
 
 
 if __name__ == '__main__':
