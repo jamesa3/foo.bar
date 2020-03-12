@@ -1,13 +1,17 @@
-import math
+from fractions import gcd
 from fractions import Fraction
 
 
 def zero_matrix(n, m=None):
+    """Return an n by m zero matrix, n by n if m is not provided"""
     m = m if m else n
     return [[0 for x in range(m)] for y in range(n)]
 
 
 def subtract_from_identity_matrix(m):
+    """Subtract m from an identity matrix of equal dimensions to m and
+    return result
+    """
     result = zero_matrix(len(m))
     for i, row in enumerate(m):
         for j, cell in enumerate(row):
@@ -17,6 +21,7 @@ def subtract_from_identity_matrix(m):
 
 
 def identity_matrix(m):
+    """Return an m by m identity matrix"""
     result = zero_matrix(m)
     for i in range(m):
         result[i][i] = 1
@@ -24,6 +29,7 @@ def identity_matrix(m):
 
 
 def copy_matrix(m):
+    """Return a copy of matrix m"""
     len_m = len(m)
     result = zero_matrix(len_m)
 
@@ -33,15 +39,15 @@ def copy_matrix(m):
     return result
 
 
-# def invert_matrix(m):
 def invert_matrix(m):
-    # Section 2: Make copies of A & I, AM & IM, to use for row ops
+    """Return matrix m inverted"""
+    # Make copies of A & I, AM & IM, to use for row ops
     n = len(m)
     AM = copy_matrix(m)
     I = identity_matrix(n)
     IM = copy_matrix(I)
 
-    # Section 3: Perform row operations
+    # Perform row operations
     indices = list(range(n))  # to allow flexible row referencing ***
     for fd in range(n):  # fd stands for focus diagonal
         # fd_scaler = 1.0 / AM[fd][fd]
@@ -63,6 +69,7 @@ def invert_matrix(m):
 
 
 def matrix_multiply(a, b):
+    """Return the multiplication product of a and b"""
     rows_a = len(a)
     cols_a = len(a[0])
     cols_b = len(b[0])
@@ -79,16 +86,19 @@ def matrix_multiply(a, b):
 
 
 def least_common_multiplier(fractions):
+    """Return the LCM of fractions"""
     denominators = [f.denominator for f in fractions]
     lcm = denominators[0]
     for d in denominators[1:]:
         # integer division
-        lcm = lcm // math.gcd(lcm, d) * d
+        lcm = lcm // gcd(lcm, d) * d
     return lcm
 
 
 def solution(m):
-    # STEP 1
+    if m == [[0]]:
+        return [1, 1]
+
     state_count = len(m)
     zero_count = [0] * state_count
     totals = [0] * state_count
@@ -102,20 +112,19 @@ def solution(m):
             totals[i] += cell
             if cell == 0:
                 zero_count[j] += 1
-        if totals[i] > 0:
+        if totals[i] > 0 or i == 0:
             transient_states.append(i)
         elif totals[i] == 0:
             terminal_states.append(i)
 
     for i, count in enumerate(zero_count):
-        if count == state_count:
+        if count == state_count and i != 0:
             unreachable_states.append(i)
 
     all_terminal_states = terminal_states
     terminal_states = list(set(terminal_states) - set(unreachable_states))
     transient_states = list(set(transient_states) - set(unreachable_states))
 
-    # STEP 2
     Q = []  # t * t matrix transient states
     R = []  # t * r matrix transient by terminal states
     for i, row in enumerate(m):
@@ -140,18 +149,18 @@ def solution(m):
             if first_row_b[j].denominator == lcm:
                 result[i] = first_row_b[j].numerator
             else:
-                result[i] = first_row_b[j].numerator\
+                result[i] = first_row_b[j].numerator \
                             * (lcm // first_row_b[j].denominator)
             j += 1
         else:
             result[j] = 0
 
-    result.append(least_common_multiplier(first_row_b))
+    result.append(lcm)
     return result
 
 
 def main():
-    print(solution([[0, 2, 1, 0, 0], [0, 0, 0, 3, 4], [0, 0, 0, 0, 0], [0, 0, 0, 0,0], [0, 0, 0, 0, 0]]))
+    print(solution([[0, 1, 0, 0, 0, 1], [4, 0, 0, 3, 2, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]))
 
 
 if __name__ == '__main__':
